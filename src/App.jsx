@@ -6,7 +6,7 @@ function LoadingSpinner() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-      <p className="text-gray-600 text-lg">Loading thoughts...</p>
+      <p className="text-gray-600 text-lg">Carregando pensamentos...</p>
     </div>
   );
 }
@@ -16,7 +16,7 @@ function LoadingMore() {
   return (
     <div className="flex flex-col items-center justify-center p-8 gap-4 bg-white rounded-xl my-4 border border-gray-200 shadow-sm">
       <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-      <p className="text-gray-600 text-base m-0">Loading more thoughts...</p>
+      <p className="text-gray-600 text-base m-0">Carregando mais pensamentos...</p>
     </div>
   );
 }
@@ -26,10 +26,10 @@ function EndMessage() {
   return (
     <div className="text-center p-12 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl my-8 shadow-lg">
       <p className="text-xl font-semibold mb-2">
-        🎉 You've seen all the thoughts!
+        🎉 Você viu todos os pensamentos!
       </p>
       <p className="text-emerald-100">
-        Scroll up to review or use search to find specific content.
+        Role para cima para revisar ou use a busca para encontrar conteúdo específico.
       </p>
     </div>
   );
@@ -40,14 +40,14 @@ function ErrorMessage({ error, onRetry }) {
   return (
     <div className="text-center p-12 max-w-md mx-auto">
       <h2 className="text-red-600 mb-4 text-2xl font-bold">
-        Error loading thoughts
+        Erro ao carregar pensamentos
       </h2>
       <p className="mb-6 text-gray-600 leading-relaxed">{error}</p>
       <button
         onClick={onRetry}
         className="px-6 py-3 bg-red-600 text-white border-none rounded-lg text-base cursor-pointer hover:bg-red-700 transition-colors"
       >
-        Try Again
+        Tentar Novamente
       </button>
     </div>
   );
@@ -96,6 +96,7 @@ export default function App() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   // Configuration
   const BATCH_SIZE = 20;
@@ -229,6 +230,10 @@ export default function App() {
     scrollToTop();
   };
 
+  const toggleMobileSearch = () => {
+    setMobileSearchOpen(!mobileSearchOpen);
+  };
+
   const loadAllRemaining = () => {
     if (loadingMore) return;
     setLoadingMore(true);
@@ -248,17 +253,17 @@ export default function App() {
     return (
       <div className="text-center p-12 max-w-2xl mx-auto">
         <h2 className="text-gray-800 mb-4 text-2xl font-bold">
-          No thoughts found
+          Nenhum pensamento encontrado
         </h2>
         <p className="text-gray-600 mb-8 text-lg">
-          Please add a thoughts.json file to your project.
+          Por favor, adicione um arquivo thoughts.json ao seu projeto.
         </p>
         <div className="text-left bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
           <p className="font-semibold text-gray-800 mb-2">
-            Where to place your file:
+            Onde colocar seu arquivo:
           </p>
           <p className="text-gray-600">
-            <strong>Required:</strong>{" "}
+            <strong>Obrigatório:</strong>{" "}
             <code className="bg-gray-200 px-2 py-1 rounded text-sm font-mono">
               public/thoughts.json
             </code>
@@ -273,54 +278,77 @@ export default function App() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="text-center mb-8 sticky top-0 bg-gray-50/90 backdrop-blur-sm py-4 z-20 border-b border-gray-200/50">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 text-shadow">
-            Daily Thoughts & Sayings s
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Wisdom from great minds to inspire your day{" "}
-            <span className="text-blue-600 font-semibold">
-              ({allThoughts.length} thoughts • Tailwind v4 • Infinite Scroll)
-            </span>
-          </p>
+          <div className="relative">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2 text-shadow">
+              Pensamentos e Reflexões Diárias
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Sabedoria de grandes mentes para inspirar seu dia
+            </p>
+            {/* Mobile Search Button */}
+            <button
+              onClick={toggleMobileSearch}
+              className="absolute top-0 right-0 sm:hidden p-3 text-gray-600 hover:text-blue-600 hover:bg-white/50 rounded-lg transition-all duration-200"
+              aria-label="Alternar busca"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+          </div>
         </header>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-4 sticky top-20 bg-gray-50/90 backdrop-blur-sm py-4 z-10 border-b border-gray-200/50">
-          <input
-            type="text"
-            placeholder="Search thoughts or authors..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="flex-1 min-w-64 px-4 py-3 border border-gray-300 rounded-lg text-base bg-white/90 backdrop-blur-sm transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          />
-          <select
-            value={filterCategory}
-            onChange={handleCategoryChange}
-            className="px-4 py-3 border border-gray-300 rounded-lg text-base bg-white/90 backdrop-blur-sm cursor-pointer transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={getRandomThought}
-            className="px-6 py-3 bg-blue-500 text-white border-none rounded-lg text-base cursor-pointer whitespace-nowrap hover:bg-blue-600 active:scale-95 transition-all duration-200"
-          >
-            🎲 Random Thought
-          </button>
+        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          mobileSearchOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 sm:max-h-96 sm:opacity-100'
+        } sm:block sticky top-20 bg-gray-50/90 backdrop-blur-sm z-10 border-b border-gray-200/50`}>
+          <div className="flex flex-col sm:flex-row gap-4 mb-4 py-4">
+            <input
+              type="text"
+              placeholder="Buscar pensamentos ou autores..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="flex-1 min-w-64 px-4 py-3 border border-gray-300 rounded-lg text-base bg-white/90 backdrop-blur-sm transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            />
+            <select
+              value={filterCategory}
+              onChange={handleCategoryChange}
+              className="px-4 py-3 border border-gray-300 rounded-lg text-base bg-white/90 backdrop-blur-sm cursor-pointer transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'Todas' : category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={getRandomThought}
+              className="px-6 py-3 bg-blue-500 text-white border-none rounded-lg text-base cursor-pointer whitespace-nowrap hover:bg-blue-600 active:scale-95 transition-all duration-200"
+            >
+              🎲 Pensamento Aleatório
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200 sticky top-36 bg-gray-50/90 backdrop-blur-sm py-3 z-10 gap-3">
           <div className="text-sm text-gray-600 font-medium">
-            Showing {displayedThoughts.length} of {filteredThoughts.length}{" "}
-            thoughts
+            Mostrando {displayedThoughts.length} de {filteredThoughts.length}{" "}
+            pensamentos
             {filteredThoughts.length !== allThoughts.length && (
               <span className="text-blue-600">
                 {" "}
-                (filtered from {allThoughts.length} total)
+                (filtrados de {allThoughts.length} no total)
               </span>
             )}
           </div>
@@ -330,7 +358,7 @@ export default function App() {
               onClick={scrollToTop}
               className="px-3 py-2 bg-gray-600 text-white border-none rounded text-sm cursor-pointer hover:bg-gray-700 active:scale-95 transition-all duration-200"
             >
-              ↑ Back to Top
+              ↑ Voltar ao Topo
             </button>
             {hasMore && (
               <button
@@ -338,7 +366,7 @@ export default function App() {
                 className="px-3 py-2 bg-emerald-500 text-white border-none rounded text-sm cursor-pointer hover:bg-emerald-600 active:scale-95 transition-all duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={loadingMore}
               >
-                {loadingMore ? "⏳ Loading..." : "⚡ Load All"}
+                {loadingMore ? "⏳ Carregando..." : "⚡ Carregar Tudo"}
               </button>
             )}
             {(searchTerm || filterCategory !== "all") && (
@@ -346,7 +374,7 @@ export default function App() {
                 onClick={clearFilters}
                 className="px-3 py-2 bg-red-500 text-white border-none rounded text-sm cursor-pointer hover:bg-red-600 active:scale-95 transition-all duration-200"
               >
-                ✕ Clear Filters
+                ✕ Limpar Filtros
               </button>
             )}
           </div>
@@ -356,7 +384,7 @@ export default function App() {
         {selectedThought && (
           <div className="mb-8 p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl shadow-lg">
             <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
-              ⭐ Featured Thought
+              ⭐ Pensamento em Destaque
             </h2>
             <blockquote className="text-lg mb-3 italic leading-relaxed">
               "{selectedThought.text}"
@@ -379,12 +407,12 @@ export default function App() {
           pullDownToRefreshThreshold={50}
           pullDownToRefreshContent={
             <h3 className="text-center text-gray-600 py-4">
-              ⬇️ Pull down to refresh
+              ⬇️ Puxe para baixo para atualizar
             </h3>
           }
           releaseToRefreshContent={
             <h3 className="text-center text-gray-600 py-4">
-              ⬆️ Release to refresh
+              ⬆️ Solte para atualizar
             </h3>
           }
           scrollThreshold={0.8}
@@ -402,38 +430,19 @@ export default function App() {
           </div>
         </InfiniteScroll>
 
-        {/* Performance info */}
-        <div className="mt-8 text-center p-4 bg-blue-50/80 backdrop-blur-sm border border-blue-200 rounded-lg text-blue-800 sticky bottom-4 z-10">
-          <small className="flex items-center justify-center gap-2 flex-wrap">
-            🚀{" "}
-            <span className="font-medium">Tailwind v4 + Infinite Scroll</span> •
-            Loaded{" "}
-            <span className="font-semibold text-blue-900">
-              {displayedThoughts.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-blue-900">
-              {filteredThoughts.length}
-            </span>{" "}
-            thoughts
-            {hasMore && (
-              <span className="text-blue-600">• Scroll for more</span>
-            )}
-          </small>
-        </div>
 
         {/* No results */}
         {filteredThoughts.length === 0 && !loading && (
           <div className="text-center p-12 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 my-8 shadow-sm">
             <div className="text-6xl mb-4">🔍</div>
             <p className="text-gray-600 text-lg mb-4">
-              No thoughts found matching your criteria.
+              Nenhum pensamento encontrado com seus critérios.
             </p>
             <button
               onClick={clearFilters}
               className="px-4 py-2 bg-red-500 text-white border-none rounded text-sm cursor-pointer hover:bg-red-600 active:scale-95 transition-all duration-200"
             >
-              Clear Filters
+              Limpar Filtros
             </button>
           </div>
         )}
