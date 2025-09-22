@@ -9,4 +9,14 @@ export default defineConfig({
     allowedHosts: true,
     host: [".react.da-vinci.cloud", "test.react.da-vinci.cloud"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          infinite: ['react-infinite-scroll-component']
+        }
+      }
+    }
+  }
 });

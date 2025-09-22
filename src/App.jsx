@@ -184,6 +184,10 @@ export default function App() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
+  // PWA states
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [installPrompt, setInstallPrompt] = useState(null);
+
   // Configuration
   const BATCH_SIZE = 20;
 
@@ -195,6 +199,34 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // PWA: Handle online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // PWA: Handle install prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   // Get unique categories
   const categories = useMemo(() => {
@@ -293,6 +325,15 @@ export default function App() {
     }, 500);
   }, [displayedThoughts.length, filteredThoughts, loadingMore]);
 
+  // PWA install handler
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+
+    const result = await installPrompt.prompt();
+    console.log('Install prompt result:', result);
+    setInstallPrompt(null);
+  };
+
   // Event handlers
   const retryLoading = () => window.location.reload();
   const handleThoughtClick = (thought) =>
@@ -366,6 +407,26 @@ export default function App() {
       <div className="floating-decoration w-24 h-24 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-lg"></div>
       <div className="floating-decoration w-40 h-40 bg-gradient-to-br from-pink-200/20 to-orange-200/20 rounded-full blur-2xl"></div>
       <div className="floating-decoration w-28 h-28 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 rounded-full blur-xl"></div>
+
+      {/* PWA Status Indicators */}
+      {!isOnline && (
+        <div className="fixed top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <div className="w-3 h-3 bg-red-300 rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium">Offline</span>
+        </div>
+      )}
+
+      {installPrompt && (
+        <button
+          onClick={handleInstallClick}
+          className="fixed bottom-4 left-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2 hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8l-8-8-8 8" />
+          </svg>
+          <span className="text-sm font-medium">Instalar App</span>
+        </button>
+      )}
 
       {/* Mobile Search Button - Outside Header */}
       <button
